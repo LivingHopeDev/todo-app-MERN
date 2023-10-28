@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add a new CSS class to your CSS file */
+.active-link {
+  @apply text-lightGreyishBlueHover;
+}
+
+/* Remove the active-link class from all links when one of the links is clicked */
+.active-link:not(:hover) {
+  @apply text-white;
+}
