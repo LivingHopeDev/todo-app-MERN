@@ -88,6 +88,7 @@ function App() {
           const data = await res.json();
 
           toast.success(data.message);
+          localStorage.setItem("todos", "");
           fetchTodo();
         } else {
           const errorData = await res.json();
@@ -111,6 +112,7 @@ function App() {
           const data = await res.json();
 
           toast.success(data.message);
+          localStorage.setItem("todos", "");
           fetchTodo();
         } else {
           const errorData = await res.json();
