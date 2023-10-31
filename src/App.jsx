@@ -183,6 +183,7 @@ function App() {
         const errorData = await res.json();
         toast.error(errorData.message);
       }
+      setItem("");
     } catch (error) {
       // console.error("Network error:", error);
       toast.error("Network error occurred while creating a new todo.");
@@ -297,6 +298,10 @@ function App() {
                   onDragEnter={() => (dragOverItem.current = index)}
                   onDragEnd={handleSort}
                   onDragOver={(e) => e.preventDefault()}
+                  // for mobile
+                  onTouchStart={() => (dragItem.current = index)}
+                  onTouchMove={() => (dragOverItem.current = index)}
+                  onTouchEnd={handleSort}
                 >
                   <div className={`flex justify-center items-center `}>
                     <img
