@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import bgMobile from "./assets/bg-mobile-light.jpg";
@@ -14,21 +14,26 @@ function App() {
   const [todos, setTodos] = useState([]);
 
   useEffect(() => {
-    fetchTodo();
+    const storedTodos = localStorage.getItem("todos");
+    if (storedTodos) {
+      setTodos(JSON.parse(storedTodos));
+    } else {
+      fetchTodo();
+    }
   }, []);
-
+  const baseUrl = "https://todoapi-t73j.onrender.com";
   const fetchTodo = async () => {
-    const res = await fetch(`http://localhost:5000`);
+    const res = await fetch(`${baseUrl}`);
     const data = await res.json();
     setTodos(data.message);
   };
   const fetchCompletedTodo = async () => {
-    const res = await fetch(`http://localhost:5000/todos/completed`);
+    const res = await fetch(`${baseUrl}/todos/completed`);
     const data = await res.json();
     setTodos(data.message);
   };
   const fetchNotCompletedTodo = async () => {
-    const res = await fetch(`http://localhost:5000/todos/not-completed`);
+    const res = await fetch(`${baseUrl}/todos/not-completed`);
     const data = await res.json();
     setTodos(data.message);
   };
@@ -51,15 +56,12 @@ function App() {
     );
     try {
       // Send a PUT request to your backend to update the 'completed' status
-      const res = await fetch(
-        `http://localhost:5000/todo/${todoId}/set-completed`,
-        {
-          method: "PUT",
-          headers: {
-            "content-type": "application/json",
-          },
-        }
-      );
+      const res = await fetch(`${baseUrl}/todo/${todoId}/set-completed`, {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+        },
+      });
 
       if (res.ok) {
         const data = await res.json();
@@ -76,7 +78,7 @@ function App() {
   const handleDelete = async (todoId) => {
     if (confirm("Are you sure to delete?")) {
       try {
-        const res = await fetch(`http://localhost:5000/todo/${todoId}`, {
+        const res = await fetch(`${baseUrl}/todo/${todoId}`, {
           method: "DELETE",
           headers: {
             "content-type": "application/json",
@@ -99,7 +101,7 @@ function App() {
   const deleteAllCompleted = async () => {
     if (confirm("Are you sure to delete?")) {
       try {
-        const res = await fetch(`http://localhost:5000/todos/completed`, {
+        const res = await fetch(`${baseUrl}/todos/completed`, {
           method: "DELETE",
           headers: {
             "content-type": "application/json",
@@ -118,6 +120,28 @@ function App() {
         toast.error("Network error occurred while deleting the todo.");
       }
     }
+  };
+  const dragItem = useRef(null);
+  const dragOverItem = useRef(null);
+
+  //const handle drag sorting
+  const handleSort = () => {
+    //duplicate items
+    let todoItems = [...todos];
+
+    //remove and save the dragged item content
+    const draggedItemContent = todoItems.splice(dragItem.current, 1)[0];
+
+    //switch the position
+    todoItems.splice(dragOverItem.current, 0, draggedItemContent);
+
+    //reset the position ref
+    dragItem.current = null;
+    dragOverItem.current = null;
+
+    //update the actual array
+    setTodos(todoItems);
+    localStorage.setItem("todos", JSON.stringify(todoItems));
   };
 
   const initialMode = localStorage.getItem("darkMode") === "true";
@@ -142,7 +166,7 @@ function App() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/todo`, {
+      const res = await fetch(`${baseUrl}/todo`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -262,12 +286,17 @@ function App() {
                 <p>{todos}</p>
               </div>
             ) : (
-              todos.map((todo) => (
+              todos.map((todo, index) => (
                 <div
                   key={todo._id}
                   className={`flex flex-row justify-between items-center  mb-[0.2rem] w-full p-4 rounded-[0.5rem] font-semibol  ${
                     darkMode ? "bg-veryDarkDesaturatedBlue" : "bg-white"
-                  }`}
+                  }  cursor-move`}
+                  draggable
+                  onDragStart={() => (dragItem.current = index)}
+                  onDragEnter={() => (dragOverItem.current = index)}
+                  onDragEnd={handleSort}
+                  onDragOver={(e) => e.preventDefault()}
                 >
                   <div className={`flex justify-center items-center `}>
                     <img
@@ -283,7 +312,7 @@ function App() {
                     <p
                       className={`mx-4 ${
                         todo.completed ? "line-through" : ""
-                      }   `}
+                      }  `}
                     >
                       {todo.todo}
                     </p>
