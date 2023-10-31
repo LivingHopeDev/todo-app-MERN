@@ -298,10 +298,6 @@ function App() {
                   onDragEnter={() => (dragOverItem.current = index)}
                   onDragEnd={handleSort}
                   onDragOver={(e) => e.preventDefault()}
-                  // for mobile
-                  onTouchStart={() => (dragItem.current = index)}
-                  onTouchMove={() => (dragOverItem.current = index)}
-                  onTouchEnd={handleSort}
                 >
                   <div className={`flex justify-center items-center `}>
                     <img
